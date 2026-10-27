@@ -50,13 +50,12 @@ app.get("/api/health", (req, res) => {
 const startServer = async () => {
   try {
     await connectDb();
-    console.log("DB Connected");
 
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
   } catch (error) {
-    console.log("Database Error:", error);
+    console.log(error);
   }
 };
 

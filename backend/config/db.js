@@ -2,14 +2,13 @@ import mongoose from "mongoose";
 
 const connectDb = async () => {
   try {
-    console.log("Mongo URL Exists:", !!process.env.MONGODB_URL);
+    console.log("MONGODB_URL =", process.env.MONGODB_URL ? "FOUND" : "NOT FOUND");
 
     await mongoose.connect(process.env.MONGODB_URL);
 
-    console.log("db connected");
+    console.log("✅ DB CONNECTED");
   } catch (error) {
-    console.error("MongoDB Connection Error:", error);
-    throw error;
+    console.error("❌ DATABASE ERROR:", error);
   }
 };
 
