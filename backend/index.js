@@ -46,7 +46,18 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "OK", message: "AI Assistant Server is running" });
 });
 
-app.listen(port, () => {
-  connectDb();
-  console.log(`Server started on http://localhost:${port}`);
-});
+
+const startServer = async () => {
+  try {
+    await connectDb();
+    console.log("DB Connected");
+
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  } catch (error) {
+    console.log("Database Error:", error);
+  }
+};
+
+startServer();
