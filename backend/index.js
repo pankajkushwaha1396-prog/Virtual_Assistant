@@ -20,7 +20,7 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: "https://virtual-assistant-tjmy.vercel.app",
     credentials: true,
   })
 );
