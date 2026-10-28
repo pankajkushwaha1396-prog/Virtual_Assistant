@@ -27,6 +27,14 @@ const Home = () => {
 
   const navigate = useNavigate();
 
+  const defaultAssistantImage = "/default-avatar.png";
+
+  const assistantImage =
+    typeof userData?.assistantImage === "string" &&
+      userData.assistantImage.trim() !== ""
+      ? userData.assistantImage
+      : defaultAssistantImage;
+
   // Assistant states
   const [listening, setListening] = useState(false);
   const [userText, setUserText] = useState("");
@@ -621,9 +629,13 @@ const Home = () => {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-blue-400/80 shadow-md">
             <img
-              src={userData?.assistantImage}
+              src={assistantImage}
               alt="Avatar"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = defaultAssistantImage;
+              }}
             />
           </div>
           <div>
@@ -643,21 +655,19 @@ const Home = () => {
           <div className="flex bg-white/10 backdrop-blur-md rounded-full p-1 border border-white/20">
             <button
               onClick={() => setSelectedLang("hindi")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                isHindi
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${isHindi
                   ? "bg-blue-600 text-white shadow-md"
                   : "text-gray-300 hover:text-white"
-              }`}
+                }`}
             >
               🇮🇳 हिंदी
             </button>
             <button
               onClick={() => setSelectedLang("english")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
-                !isHindi
+              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${!isHindi
                   ? "bg-blue-600 text-white shadow-md"
                   : "text-gray-300 hover:text-white"
-              }`}
+                }`}
             >
               🌐 English
             </button>
@@ -700,20 +710,23 @@ const Home = () => {
         {/* Assistant Avatar with glowing effects */}
         <div className="relative mb-6">
           <div
-            className={`w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full overflow-hidden border-4 transition-all duration-500 shadow-2xl relative ${
-              listening
+            className={`w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full overflow-hidden border-4 transition-all duration-500 shadow-2xl relative ${listening
                 ? "border-emerald-400 shadow-[0_0_50px_rgba(52,211,153,0.6)] scale-105"
                 : isSpeaking
-                ? "border-blue-400 shadow-[0_0_50px_rgba(96,165,250,0.6)] scale-105"
-                : isProcessing
-                ? "border-purple-400 shadow-[0_0_40px_rgba(192,132,252,0.5)] animate-pulse"
-                : "border-white/40 shadow-blue-900/50"
-            }`}
+                  ? "border-blue-400 shadow-[0_0_50px_rgba(96,165,250,0.6)] scale-105"
+                  : isProcessing
+                    ? "border-purple-400 shadow-[0_0_40px_rgba(192,132,252,0.5)] animate-pulse"
+                    : "border-white/40 shadow-blue-900/50"
+              }`}
           >
             <img
-              src={userData?.assistantImage}
+              src={assistantImage}
               alt="Assistant"
               className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = defaultAssistantImage;
+              }}
             />
           </div>
 
@@ -736,13 +749,12 @@ const Home = () => {
 
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md mt-2">
           <span
-            className={`w-2.5 h-2.5 rounded-full ${
-              listening
+            className={`w-2.5 h-2.5 rounded-full ${listening
                 ? "bg-emerald-400 animate-ping"
                 : isSpeaking
-                ? "bg-blue-400 animate-pulse"
-                : "bg-gray-400"
-            }`}
+                  ? "bg-blue-400 animate-pulse"
+                  : "bg-gray-400"
+              }`}
           ></span>
           <span className="text-sm font-medium text-gray-200">{status}</span>
         </div>
@@ -813,11 +825,10 @@ const Home = () => {
             type="button"
             onClick={toggleMic}
             title={listening ? "Stop Mic" : "Start Voice"}
-            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-lg shrink-0 ${
-              listening
+            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-lg shrink-0 ${listening
                 ? "bg-red-500 hover:bg-red-600 text-white animate-pulse"
                 : "bg-blue-600 hover:bg-blue-500 text-white"
-            }`}
+              }`}
           >
             {listening ? (
               <IoMdMicOff className="w-6 h-6" />
@@ -858,9 +869,8 @@ const Home = () => {
 
       {/* Slide-over History Drawer */}
       <div
-        className={`fixed inset-y-0 right-0 w-full max-w-sm bg-[#06061f]/95 backdrop-blur-2xl border-l border-white/20 p-6 z-50 flex flex-col justify-between transition-transform duration-300 shadow-2xl ${
-          historyOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed inset-y-0 right-0 w-full max-w-sm bg-[#06061f]/95 backdrop-blur-2xl border-l border-white/20 p-6 z-50 flex flex-col justify-between transition-transform duration-300 shadow-2xl ${historyOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div>
           {/* Drawer Header */}
