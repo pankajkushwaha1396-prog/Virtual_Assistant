@@ -2,6 +2,16 @@ import genToken from "../config/token.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
+const getCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === "production";
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
+};
+
 // SIGN UP
 export const signUp = async (req, res) => {
   try {
@@ -11,13 +21,15 @@ export const signUp = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const existEmail = await User.findOne({ email });
+    const existEmail = await User.findOne({ email: email.trim().toLowerCase() });
     if (existEmail) {
       return res.status(400).json({ message: "Email already exists" });
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters!" });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters!" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -30,12 +42,7 @@ export const signUp = async (req, res) => {
 
     const token = await genToken(user._id);
 
-   res.cookie("token", token, {
-  httpOnly: true,
-  secure: true,
-  sameSite: "none",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-});
+    res.cookie("token", token, getCookieOptions());
 
     const userSafe = user.toObject();
     delete userSafe.password;
@@ -53,7 +60,9 @@ export const Login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     const user = await User.findOne({ email: email.trim().toLowerCase() });
@@ -68,12 +77,7 @@ export const Login = async (req, res) => {
 
     const token = await genToken(user._id);
 
-    res.cookie("token", token, {
-  httpOnly: true,
-  secure: true,
-  sameSite: "none",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-});
+    res.cookie("token", token, getCookieOptions());
 
     const userSafe = user.toObject();
     delete userSafe.password;
@@ -88,9 +92,11 @@ export const Login = async (req, res) => {
 // LOG OUT
 export const logOut = async (req, res) => {
   try {
+    const isProd = process.env.NODE_ENV === "production";
     res.clearCookie("token", {
       httpOnly: true,
-      sameSite: "lax",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
     });
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {

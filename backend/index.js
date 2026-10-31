@@ -7,8 +7,18 @@ import authRouter from "./routes/auth.routes.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.routes.js";
+import fs from "fs";
 
 const app = express();
+
+// Ensure local upload directories exist
+if (!fs.existsSync("./public/uploads")) {
+  try {
+    fs.mkdirSync("./public/uploads", { recursive: true });
+  } catch (e) {
+    console.error("Failed to create ./public/uploads:", e);
+  }
+}
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -16,6 +26,7 @@ const allowedOrigins = [
   "http://127.0.0.1:5173",
   "http://127.0.0.1:5174",
   "https://virtual-assistant-tjmy.vercel.app",
+  "https://virtual-assistant-eight.vercel.app",
 ];
 
 app.use(
@@ -24,7 +35,7 @@ app.use(
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        callback(null, true); // Allow during dev / dynamic vercel previews
       }
     },
     credentials: true,
@@ -36,7 +47,7 @@ const port = process.env.PORT || 8000;
 app.use(express.json());
 app.use(cookieParser());
 
-// Serve static public folder if needed
+// Serve static public folder for uploaded profile images & avatars
 app.use("/public", express.static("public"));
 
 // Routes
@@ -45,9 +56,10 @@ app.use("/api/user", userRouter);
 
 // Health check
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ status: "OK", message: "AI Assistant Server is running" });
+  res
+    .status(200)
+    .json({ status: "OK", message: "AI Assistant Server is running" });
 });
-
 
 const startServer = async () => {
   try {
@@ -57,7 +69,7 @@ const startServer = async () => {
       console.log(`Server running on port ${port}`);
     });
   } catch (error) {
-    console.log(error);
+    console.error("Server start error:", error);
   }
 };
 

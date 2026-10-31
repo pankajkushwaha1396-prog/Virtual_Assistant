@@ -1,21 +1,15 @@
-import React, { useContext, useRef } from "react";
+import React, { useContext, useRef, useEffect, useState } from "react";
 import Card from "../components/Card";
-import image1 from "../assets/image1.png";
-import image2 from "../assets/image2.jpg";
-import image3 from "../assets/authBg.png";
-import image4 from "../assets/image4.png";
-import image5 from "../assets/image5.png";
-import image6 from "../assets/image6.jpeg";
-import image7 from "../assets/image7.jpeg";
-
 import { RiImageUploadFill } from "react-icons/ri";
 import { userDataContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { MdArrowBack } from "react-icons/md";
+import { AVATAR_PRESETS } from "../utils/avatarUtils";
 
 const Customize = () => {
   const {
     userData,
+    backendImage,
     setBackendImage,
     frontendImage,
     setFrontendImage,
@@ -24,60 +18,89 @@ const Customize = () => {
   } = useContext(userDataContext);
 
   const navigate = useNavigate();
-  const inputImage = useRef();
+  const inputImage = useRef(null);
+  const [uploadError, setUploadError] = useState("");
+
+  // Initialize selected image with user's current avatar if not already set
+  useEffect(() => {
+    if (!selectedImage && userData?.assistantImage) {
+      setSelectImage(userData.assistantImage);
+    }
+  }, [userData?.assistantImage, selectedImage, setSelectImage]);
 
   const handleImage = (e) => {
-    const file = e.target.files[0];
+    setUploadError("");
+    const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please select a valid image file (PNG, JPG, WEBP, GIF).");
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      setUploadError("Image size must be less than 8MB.");
+      return;
+    }
+
     setBackendImage(file);
     const previewUrl = URL.createObjectURL(file);
     setFrontendImage(previewUrl);
     setSelectImage("custom");
   };
 
-  const images = [
-    { id: 1, src: image1 },
-    { id: 2, src: image2 },
-    { id: 3, src: image3 },
-    { id: 4, src: image4 },
-    { id: 5, src: image5 },
-    { id: 6, src: image6 },
-    { id: 7, src: image7 },
-  ];
+  const isCustomSelected = selectedImage === "custom" || Boolean(backendImage);
 
   return (
-    <div className="w-full min-h-screen bg-gradient-to-t from-black to-[#030353] flex justify-center items-center flex-col p-6 relative overflow-y-auto">
-      {userData?.assistantImage && (
-        <MdArrowBack
-          className="absolute top-6 left-6 cursor-pointer text-white w-7 h-7 hover:text-blue-300 transition-colors"
+    <div className="w-full min-h-screen bg-gradient-to-t from-black via-[#040438] to-[#030353] flex justify-center items-center flex-col p-6 relative overflow-y-auto">
+      {/* Back button to Home if user already has an assistant configured */}
+      {userData?.assistantImage && userData?.assistantName && (
+        <button
           onClick={() => navigate("/")}
-        />
+          className="absolute top-6 left-6 cursor-pointer text-white/80 hover:text-white flex items-center gap-2 bg-white/10 hover:bg-white/20 px-3.5 py-2 rounded-full backdrop-blur-md border border-white/20 transition-all z-20"
+        >
+          <MdArrowBack className="w-5 h-5" />
+          <span className="text-sm font-medium">Back to Assistant</span>
+        </button>
       )}
 
-      <div className="text-center mb-8">
-        <h1 className="text-white text-3xl md:text-4xl font-bold">
-          Choose Your <span className="text-blue-400">Assistant Avatar</span>
+      <div className="text-center mb-8 mt-12 md:mt-0">
+        <h1 className="text-white text-3xl md:text-5xl font-extrabold tracking-tight">
+          Choose Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Assistant Avatar</span>
         </h1>
-        <p className="text-gray-300 text-sm md:text-base mt-2">
-          Select a default avatar or upload your own custom photo
+        <p className="text-gray-300 text-sm md:text-base mt-3 max-w-xl mx-auto">
+          Select from our curated AI holograms and robotic avatars, or upload a personalized image from your device.
         </p>
       </div>
 
-      <div className="w-full max-w-4xl flex justify-center items-center flex-wrap gap-4 md:gap-6">
-        {images.map((item) => (
-          <Card key={item.id} image={item.src} />
+      {uploadError && (
+        <div className="mb-4 text-red-300 bg-red-950/70 border border-red-500/50 px-4 py-2 rounded-xl text-sm">
+          {uploadError}
+        </div>
+      )}
+
+      {/* Grid of Avatars */}
+      <div className="w-full max-w-5xl flex justify-center items-center flex-wrap gap-4 md:gap-6 p-2">
+        {AVATAR_PRESETS.map((preset) => (
+          <Card
+            key={preset.id}
+            image={preset.src}
+            name={preset.name}
+            isGif={preset.isGif}
+          />
         ))}
 
         {/* Custom Upload Card */}
         <div
-          className={`w-[80px] sm:w-[120px] lg:w-[150px] h-[140px] sm:h-[200px] lg:h-[240px] bg-[#030326] border-2 rounded-2xl overflow-hidden hover:shadow-xl cursor-pointer flex flex-col items-center justify-center p-2 transition-all ${
-            selectedImage === "custom"
-              ? "border-4 border-blue-400 shadow-2xl shadow-blue-500/50 scale-105"
-              : "border-blue-500/40 hover:border-white"
+          className={`group relative w-[95px] sm:w-[130px] lg:w-[155px] h-[145px] sm:h-[195px] lg:h-[235px] bg-[#030326] border-2 rounded-2xl overflow-hidden hover:shadow-xl cursor-pointer flex flex-col items-center justify-center p-2 transition-all duration-300 ${
+            isCustomSelected
+              ? "border-4 border-blue-400 shadow-2xl shadow-blue-500/60 scale-105"
+              : "border-blue-500/40 hover:border-white hover:scale-[1.02]"
           }`}
           onClick={() => {
-            inputImage.current.click();
+            inputImage.current?.click();
           }}
+          title="Click to upload custom avatar"
         >
           {frontendImage ? (
             <img
@@ -86,11 +109,24 @@ const Customize = () => {
               className="w-full h-full object-cover rounded-xl"
             />
           ) : (
-            <div className="flex flex-col items-center gap-2 text-center text-gray-300">
-              <RiImageUploadFill className="text-white w-8 h-8" />
-              <span className="text-xs font-medium">Upload Image</span>
+            <div className="flex flex-col items-center gap-2 text-center text-gray-300 p-2">
+              <div className="w-12 h-12 rounded-full bg-blue-600/30 border border-blue-400/50 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <RiImageUploadFill className="text-blue-300 w-6 h-6" />
+              </div>
+              <span className="text-xs font-semibold text-white">Upload Custom</span>
+              <span className="text-[10px] text-gray-400">JPG, PNG, GIF</span>
             </div>
           )}
+
+          {isCustomSelected && (
+            <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold shadow-md">
+              ✓
+            </div>
+          )}
+
+          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 to-transparent p-1.5 text-center">
+            <span className="text-xs text-blue-300 font-medium">Custom Photo</span>
+          </div>
         </div>
 
         <input
@@ -102,14 +138,22 @@ const Customize = () => {
         />
       </div>
 
-      {selectedImage && (
-        <button
-          className="min-w-[180px] h-[55px] mt-8 text-black font-semibold cursor-pointer bg-white hover:bg-blue-300 transition-all rounded-full text-lg shadow-lg"
-          onClick={() => navigate("/customize2")}
-        >
-          Continue to Name &rarr;
-        </button>
-      )}
+      {/* Action CTA */}
+      <div className="mt-8 flex flex-col items-center gap-3">
+        {(selectedImage || backendImage) ? (
+          <button
+            className="min-w-[220px] h-[55px] px-8 text-black font-bold cursor-pointer bg-gradient-to-r from-white to-blue-100 hover:from-blue-200 hover:to-white transition-all duration-300 rounded-full text-lg shadow-xl shadow-blue-900/40 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+            onClick={() => navigate("/customize2")}
+          >
+            <span>Continue to Name</span>
+            <span>&rarr;</span>
+          </button>
+        ) : (
+          <p className="text-gray-400 text-sm italic">
+            Tap any avatar above to proceed
+          </p>
+        )}
+      </div>
     </div>
   );
 };
